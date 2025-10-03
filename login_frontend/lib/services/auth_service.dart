@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class AuthService {
-  // Reemplaza esta URL si tu backend está en otro lugar.
-  // 10.0.2.2 es la dirección para que el emulador de Android se conecte al localhost de tu computadora.
-  final String _baseUrl = 'http://127.0.0.1:8000/api';
+  // Replace this URL if your backend is running elsewhere.
+  // 10.0.2.2 is the special IP that allows the Android emulator
+  // to access the localhost of your development machine.
+  final String _baseUrl = 'http://10.0.2.2:8000/api';
 
   Future<bool> register(String email, String password) async {
     final url = Uri.parse('$_baseUrl/users/');
@@ -21,20 +22,19 @@ class AuthService {
         }),
       );
 
-      // El código 201 significa "Created" (Creado), que es lo que nuestra API devuelve si tiene éxito.
+      // 201 means "Created" — what our API returns if the registration is successful.
       if (response.statusCode == 201) {
-        print('Registro exitoso');
+        print('✅ Registration successful');
         return true;
       } else {
-        // Imprimimos el error para depuración
-        print('Error en el registro: ${response.body}');
+        // Log the error for debugging
+        print('❌ Registration error: ${response.body}');
         return false;
       }
     } catch (e) {
-      // Atrapamos errores de conexión (ej. si el servidor no está corriendo)
-      print('Error de conexión: $e');
+      // Catch connection errors (e.g. if the server is not running)
+      print('❌ Connection error: $e');
       return false;
     }
   }
 }
-
