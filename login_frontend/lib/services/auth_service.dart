@@ -5,7 +5,7 @@ class AuthService {
   // Replace this URL if your backend is running elsewhere.
   // 10.0.2.2 is the special IP that allows the Android emulator
   // to access the localhost of your development machine.
-  final String _baseUrl = 'http://10.0.2.2:8000/api';
+  final String _baseUrl = 'http://192.168.9.116:5000/api';
 
   Future<bool> register(String email, String password) async {
     final url = Uri.parse('$_baseUrl/users/');

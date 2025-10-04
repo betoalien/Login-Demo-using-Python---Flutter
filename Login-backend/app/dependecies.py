@@ -1,3 +1,5 @@
+# app/dependencies.py
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
@@ -5,19 +7,16 @@ from sqlalchemy.orm import Session
 
 from . import crud, models, schemas, security
 from .database import SessionLocal
+from .redis_client import get_redis_client
 
-# Esta instancia de OAuth2PasswordBearer es una "dependencia" que busca un token JWT
-# en el encabezado de autorización de la petición.
-# 'tokenUrl' apunta al endpoint de login para que la documentación interactiva sepa a dónde ir.
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/token")
 
 
 def get_db():
     """
-    Dependencia para obtener una sesión de la base de datos.
-
-    Abre una sesión al inicio de la petición y se asegura de cerrarla al final,
-    incluso si ocurren errores.
+    Dependency to provide a SQLAlchemy database session.
+    Opens a session at the start of the request and closes it at the end,
+    even if exceptions occur.
     """
     db = SessionLocal()
     try:
@@ -30,10 +29,8 @@ async def get_current_active_user(
     token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
 ):
     """
-    Dependencia para obtener el usuario actual a partir de un token JWT.
-
-    Valida el token, decodifica su contenido (payload) y busca al usuario
-    correspondiente en la base de datos.
+    Dependency to retrieve the current active user from a JWT token.
+    Decodes the token, extracts the email, and fetches the user from the database.
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -48,13 +45,17 @@ async def get_current_active_user(
         token_data = schemas.TokenData(email=email)
     except JWTError:
         raise credentials_exception
-    
+
     user = crud.get_user_by_email(db, email=token_data.email)
     if user is None:
         raise credentials_exception
-        
-    # En una app real, podrías verificar si el usuario está activo aquí
-    # if not user.is_active:
-    #     raise HTTPException(status_code=400, detail="Inactive user")
-        
+
     return user
+
+
+def get_redis():
+    """
+    Dependency to provide a Redis client.
+    Useful if you want to use Redis directly in your routers.
+    """
+    return get_redis_client()
